@@ -1,20 +1,20 @@
-# ==== OS / Eclipse ====
-.DS_Store
-.classpath
-.project
-.settings/
+# OS / Eclipse (모든 하위 폴더 포함)
+**/.DS_Store
+**/.classpath
+**/.project
+**/.settings/
 
-# ==== Build outputs ====
-bin/
-build/
-target/
-out/
+# Build outputs (모든 하위)
+**/bin/
+**/build/
+**/target/
+**/out/
 
-# ==== Java ====
+# Java
 *.class
 *.log
 
-# ==== IDE (기타) ====
+# IDE
 .vscode/
 .idea/
 *.iml
