@@ -1,5 +1,0 @@
-package com.ssafit.model.dao.impl.copy;
-
-public class UserDaoImpl {
-
-}

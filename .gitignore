@@ -1,0 +1,23 @@
+# ==== Eclipse 워크스페이스 ====
+.metadata/
+Servers/
+
+# ==== Eclipse 프로젝트 ====
+PJT4-C-SSAFIT/.classpath
+PJT4-C-SSAFIT/.project
+PJT4-C-SSAFIT/.settings/
+
+# ==== 빌드 산출물 ====
+PJT4-C-SSAFIT/bin/
+PJT4-C-SSAFIT/build/
+PJT4-C-SSAFIT/target/
+PJT4-C-SSAFIT/out/
+
+# ==== Java ====
+*.class
+*.log
+
+# ==== IDE (혹시 모를 것들) ====
+.idea/
+.vscode/
+*.iml
