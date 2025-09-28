@@ -21,41 +21,27 @@ public class VideoReviewController extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
         String act = request.getParameter("act");
 
+        if (act == null) act = "list";
+
         switch (act) {
-        case "detail":   // 리뷰 상세
-            doDetail(request, response);
-            break;
-        case "addform":  // 리뷰 등록 폼
-            doAddForm(request, response);
-            break;
-        case "add":      // 리뷰 등록
-            doAdd(request, response);
-            break;
-        case "list":     // 특정 영상의 리뷰 목록
-            doList(request, response);
-            break;
-        case "updateform": // 리뷰 수정 폼
-            doUpdateForm(request, response);
-            break;
-        case "update":   // 리뷰 수정
-            doUpdate(request, response);
-            break;
-        case "delete":   // 리뷰 삭제
-            doDelete(request, response);
-            break;
+            case "detail":   doDetail(request, response); break;
+            case "addform":  doAddForm(request, response); break;
+            case "add":      doAdd(request, response); break;
+            case "list":     doList(request, response); break;
+            case "updateform": doUpdateForm(request, response); break;
+            case "update":   doUpdate(request, response); break;
+            case "delete":   doDelete(request, response); break;
         }
     }
 
-    // 특정 리뷰 상세 보기
     private void doDetail(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         int reviewId = Integer.parseInt(request.getParameter("reviewId"));
         VideoReview review = reviewService.getReview(reviewId);
 
         if (review != null) {
-            review.setViewCount(review.getViewCount() + 1); // 조회수 증가
+            review.setViewCount(review.getViewCount() + 1);
             reviewService.reviewUpdate(review);
         }
 
@@ -63,14 +49,12 @@ public class VideoReviewController extends HttpServlet {
         request.getRequestDispatcher("/review/reviewDetail.jsp").forward(request, response);
     }
 
-    // 리뷰 등록 폼
     private void doAddForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         int videoId = Integer.parseInt(request.getParameter("videoId"));
         request.setAttribute("videoId", videoId);
         request.getRequestDispatcher("/review/reviewAdd.jsp").forward(request, response);
     }
 
-    // 리뷰 등록 처리
     private void doAdd(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int videoId = Integer.parseInt(request.getParameter("videoId"));
         String writer = request.getParameter("writer");
@@ -83,7 +67,6 @@ public class VideoReviewController extends HttpServlet {
         response.sendRedirect("review?act=list&videoId=" + videoId);
     }
 
-    // 특정 영상의 리뷰 목록
     private void doList(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         int videoId = Integer.parseInt(request.getParameter("videoId"));
         List<VideoReview> reviews = reviewService.getReviewList(videoId);
@@ -93,7 +76,6 @@ public class VideoReviewController extends HttpServlet {
         request.getRequestDispatcher("/review/reviewList.jsp").forward(request, response);
     }
 
-    // 리뷰 수정 폼
     private void doUpdateForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         int reviewId = Integer.parseInt(request.getParameter("reviewId"));
         VideoReview review = reviewService.getReview(reviewId);
@@ -102,7 +84,6 @@ public class VideoReviewController extends HttpServlet {
         request.getRequestDispatcher("/review/reviewUpdate.jsp").forward(request, response);
     }
 
-    // 리뷰 수정 처리
     private void doUpdate(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int reviewId = Integer.parseInt(request.getParameter("reviewId"));
         int videoId = Integer.parseInt(request.getParameter("videoId"));
@@ -116,8 +97,7 @@ public class VideoReviewController extends HttpServlet {
         response.sendRedirect("review?act=detail&reviewId=" + reviewId);
     }
 
-    // 리뷰 삭제
-    private void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int reviewId = Integer.parseInt(request.getParameter("reviewId"));
         int videoId = Integer.parseInt(request.getParameter("videoId"));
 

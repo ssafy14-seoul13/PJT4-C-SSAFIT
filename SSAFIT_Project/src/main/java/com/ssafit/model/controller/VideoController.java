@@ -23,29 +23,34 @@ public class VideoController extends HttpServlet {
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         String act = request.getParameter("act");
+        if (act == null) {
+            act = "list"; // 기본 액션은 목록
+        }
 
         switch (act) {
-        case "detail": // 영상 상세
-            doDetail(request, response);
-            break;
-        case "addform": // 영상 등록 폼
-            doAddForm(request, response);
-            break;
-        case "add": // 영상 등록
-            doAdd(request, response);
-            break;
-        case "list": // 영상 전체 목록
-            doList(request, response);
-            break;
-        case "updateform": // 영상 수정 폼
-            doUpdateForm(request, response);
-            break;
-        case "update": // 영상 수정
-            doUpdate(request, response);
-            break;
-        case "delete": // 영상 삭제
-            doDelete(request, response);
-            break;
+            case "detail": // 영상 상세
+                doDetail(request, response);
+                break;
+            case "addform": // 영상 등록 폼
+                doAddForm(request, response);
+                break;
+            case "add": // 영상 등록
+                doAdd(request, response);
+                break;
+            case "list": // 영상 전체 목록
+                doList(request, response);
+                break;
+            case "updateform": // 영상 수정 폼
+                doUpdateForm(request, response);
+                break;
+            case "update": // 영상 수정
+                doUpdate(request, response);
+                break;
+            case "delete": // 영상 삭제
+                doDelete(request, response);
+                break;
+            default:
+                doList(request, response);
         }
     }
 
@@ -101,10 +106,10 @@ public class VideoController extends HttpServlet {
         response.sendRedirect("video?act=detail&videoId=" + videoId);
     }
 
-    private void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int videoId = Integer.parseInt(request.getParameter("videoId"));
-
         videoService.videoDelete(videoId);
+
         response.sendRedirect("video?act=list");
     }
 }

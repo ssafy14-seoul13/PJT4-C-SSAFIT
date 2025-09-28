@@ -12,6 +12,7 @@
   <p>이메일: <%= user.getUserEmail() %></p>
   
   <a href="user?act=signout&userId=<%= user.getUserId() %>">로그아웃</a> | 
-  <a href="user?act=remove&userId=<%= user.getUserId() %>">회원탈퇴</a>
+  <a href="user?act=remove&userId=<%= user.getUserId() %>">회원탈퇴</a>  |
+  <a href="<%=request.getContextPath()%>/video?act=list">영상 목록</a>
 </div>
 <%@ include file="../common/footer.jsp" %>
