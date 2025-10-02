@@ -1,70 +1,118 @@
 package com.ssafit.model.dao.impl;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.ssafit.model.dao.VideoDao;
 import com.ssafit.model.dto.Video;
+import com.ssafit.util.DBUtil;
 
 public class VideoDaoImpl implements VideoDao {
     private static VideoDao dao = new VideoDaoImpl();
-    private Map<Integer, Video> map = new HashMap<>();
-    private AtomicInteger count = new AtomicInteger(8); // 초기 데이터 id 끝 번호
 
-    private VideoDaoImpl() {
-        getInit();
-    }
+    private VideoDaoImpl() {}
 
     public static VideoDao getInstance() {
         return dao;
     }
 
-    // 초기 데이터 셋업
-    private void getInit() {
-        map.put(1, new Video(1, "전신 다이어트 최고의 운동 [칼소폭 찐 핵핵매운맛]", 
-            "https://www.youtube.com/embed/gMaB-fG4u4g", "전신", "ThankyouBUBU"));
-        map.put(2, new Video(2, "하루 15분! 전신 칼로리 불태우는 다이어트 운동", 
-            "https://www.youtube.com/embed/swRNeYw1JkY", "전신", "ThankyouBUBU"));
-        map.put(3, new Video(3, "상체 다이어트 최고의 운동 BEST [팔뚝살/겨드랑이살/등살/가슴어깨라인]", 
-            "https://www.youtube.com/embed/54tTYO-vU2E", "상체", "ThankyouBUBU"));
-        map.put(4, new Video(4, "상체비만 다이어트 최고의 운동 [상체 핵매운맛]", 
-            "https://www.youtube.com/embed/QqqZH3j_vH0", "상체", "ThankyouBUBU"));
-        map.put(5, new Video(5, "하체운동이 중요한 이유? 이것만 보고 따라하자 ! [하체운동 교과서]", 
-            "https://www.youtube.com/embed/tzN6ypk6Sps", "하체", "김강민"));
-        map.put(6, new Video(6, "저는 하체 식주의자 입니다", 
-            "https://www.youtube.com/embed/u5OgcZdNbMo", "하체", "GYM종국"));
-        map.put(7, new Video(7, "11자복근 복부 최고의 운동 [복근 핵매운맛]", 
-            "https://www.youtube.com/embed/PjGcOP-TQPE", "복부", "ThankyouBUBU"));
-        map.put(8, new Video(8, "(Sub)누워서하는 5분 복부운동!! 효과보장! (매일 2주만 해보세요!)", 
-            "https://www.youtube.com/embed/7TLk7pscICk", "복부", "SomiFit"));
-    }
-
-    private int updateCount() {
-        return count.incrementAndGet();
-    }
-
+    // 단일 영상 조회
     @Override
     public Video getVideo(int videoId) {
-        return map.get(videoId);
+        String sql = "SELECT * FROM video WHERE video_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, videoId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Video(
+                        rs.getInt("video_id"),
+                        rs.getString("title"),
+                        rs.getString("url"),
+                        rs.getString("part"),
+                        rs.getString("channel_name")
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
+    // 영상 추가
     @Override
     public void videoAdd(Video video) {
-        video.setId(updateCount());
-        map.put(video.getId(), video);
+        String sql = "INSERT INTO video (title, url, part, channel_name) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setString(1, video.getTitle());
+            pstmt.setString(2, video.getUrl());
+            pstmt.setString(3, video.getPart());
+            pstmt.setString(4, video.getChannelName());
+            pstmt.executeUpdate();
+
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    video.setId(rs.getInt(1)); // DB에서 생성된 PK 세팅
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    // 전체 영상 조회
     @Override
     public List<Video> getVideoList() {
-        return new ArrayList<>(map.values());
+        List<Video> list = new ArrayList<>();
+        String sql = "SELECT * FROM video";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Video(
+                    rs.getInt("video_id"),
+                    rs.getString("title"),
+                    rs.getString("url"),
+                    rs.getString("part"),
+                    rs.getString("channel_name")
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
+    // 영상 수정
     @Override
     public void videoUpdate(Video video) {
-        map.put(video.getId(), video);
+        String sql = "UPDATE video SET title=?, url=?, part=?, channel_name=? WHERE video_id=?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, video.getTitle());
+            pstmt.setString(2, video.getUrl());
+            pstmt.setString(3, video.getPart());
+            pstmt.setString(4, video.getChannelName());
+            pstmt.setInt(5, video.getId());
+            pstmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    // 영상 삭제
     @Override
     public void videoDelete(int videoId) {
-        map.remove(videoId);
+        String sql = "DELETE FROM video WHERE video_id=?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, videoId);
+            pstmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

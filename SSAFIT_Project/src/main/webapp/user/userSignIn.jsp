@@ -11,7 +11,7 @@
   </form>
   
   <div style="text-align:center;">
-    <a href="user?act=signupform">회원가입</a>
+   <a href="<%=request.getContextPath()%>/user?act=signupform">회원가입</a>
   </div>
 </div>
 <%@ include file="../common/footer.jsp" %>

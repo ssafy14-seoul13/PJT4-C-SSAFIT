@@ -1,104 +1,119 @@
 package com.ssafit.model.dao.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 import com.ssafit.model.dao.UserDao;
 import com.ssafit.model.dto.User;
+import com.ssafit.util.DBUtil;
 
 public class UserDaoImpl implements UserDao {
-	private static AtomicInteger userId = new AtomicInteger();
-	private static UserDao userDao = new UserDaoImpl();
-	private Map <Integer, Boolean> signedInMap = new HashMap<>();
-	private Map<Integer, User> userMap = new HashMap<>();
 
-	
-	private UserDaoImpl() {
-		getInit();
-	}
-	
-	//더미 데이터
-	private void getInit() {
-		 User u1 = new User("gcy9293@naver.com","1234","chaeyeon");
-		    u1.setUserId(1); // 아이디값 넣어
-		    userMap.put(1, u1);
+    private static UserDaoImpl instance = new UserDaoImpl();
+    private UserDaoImpl() {}
+    public static UserDaoImpl getInstance() {
+        return instance;
+    }
 
-		    User u2 = new User("solha@gmail.com","1234","solha");
-		    u2.setUserId(2);
-		    userMap.put(2, u2);
+    // 개인 페이지 (ID로 회원 조회)
+    @Override
+    public User getUser(int userId) {
+    	// sql문 삽입
+        String sql = "SELECT * FROM user WHERE user_id = ?";
+        // DB와 연동
+        try (Connection conn = DBUtil.getConnection();
+        		// SQL실행도구
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-		    User u3 = new User("heily@gmail.com","1234","heily");
-		    u3.setUserId(3);
-		    userMap.put(3, u3);
+            pstmt.setInt(1, userId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new User(
+                        rs.getInt("user_id"),
+                        rs.getString("user_email"),
+                        rs.getString("user_password"),
+                        rs.getString("user_nickname")
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-		    userId.set(3);  //userId의 시작값을 4로 변
-	}
-	
-	private static int updateId() {
-		return userId.incrementAndGet();
-	}
-	
-	public static UserDao getInstance() {
-		return userDao;
-	}
-	
-	//개인 페이지
-	@Override
-	public User getUser(int userId) {
-		return userMap.get(userId);
-	}
+    // 회원가입
+    @Override
+    public void userSignUp(User user) {
+        String sql = "INSERT INTO user(user_email, user_password, user_nickname) VALUES (?, ?, ?)";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-	//회원가입
-	@Override
-	public void userSignUp(User user) {
-		
-		user.setUserId(updateId());
-		userMap.put(user.getUserId(), user);
-	}
+            pstmt.setString(1, user.getUserEmail());
+            pstmt.setString(2, user.getUserPassword());
+            pstmt.setString(3, user.getUserNickname());
+            pstmt.executeUpdate();
 
-	//로그인
-	@Override
-	public User userSignIn(User user) {
-		
-		String inputEmail = user.getUserEmail();
-		String inputPassword = user.getUserPassword();
-		
-		for (Map.Entry<Integer, User> entry : userMap.entrySet()) {
-			User u = entry.getValue();
-			
-			if (u.getUserEmail().equals(inputEmail) && u.getUserPassword().equals(inputPassword)) {
-				
-				signedInMap.put(entry.getKey(),true);
-				System.out.println("[로그인 성공] : " + u.getUserNickname());
-				return u;
-			} 
-		}
-				System.out.println("[로그인 실패] : 이메일 또는 비밀번호가 잘못되었습니다.");
-				return null;
-			
-	}
+            // AUTO_INCREMENT된 user_id 가져오기
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    user.setUserId(rs.getInt(1));
+                }
+            }
+            System.out.println("[회원가입 성공] : " + user.getUserNickname());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	//로그아웃
-	@Override
-	public void userSignOut(int userId) {
-		if (signedInMap.containsKey(userId)) {
-			signedInMap.remove(userId);
-			System.out.println("[로그아웃 성공] : " + userMap.get(userId).getUserNickname());
-		} else {
-			System.out.println("[로그아웃 실패] : 이미 로그아웃 상태입니다.");
-		}
-		
-	}
+    // 로그인
+    @Override
+    public User userSignIn(User user) {
+        String sql = "SELECT * FROM user WHERE user_email = ? AND user_password = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-	//탈퇴
-	@Override
-	public void userDelete(int userId) {
-		signedInMap.remove(userId);
-		userMap.remove(userId);
-		System.out.println("[회원 탈퇴]");
-	}
-    
+            pstmt.setString(1, user.getUserEmail());
+            pstmt.setString(2, user.getUserPassword());
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    User loginUser = new User(
+                        rs.getInt("user_id"),
+                        rs.getString("user_email"),
+                        rs.getString("user_password"),
+                        rs.getString("user_nickname")
+                    );
+                    System.out.println("[로그인 성공] : " + loginUser.getUserNickname());
+                    return loginUser;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("[로그인 실패] : 이메일 또는 비밀번호 오류");
+        return null;
+    }
+
+    // 로그아웃 (DB에서는 세션 관리 X → Controller/Service에서 세션으로 처리)
+    @Override
+    public void userSignOut(int userId) {
+        System.out.println("[로그아웃 처리] : 실제로는 세션 invalidate()로 관리");
+    }
+
+    // 회원 탈퇴
+    @Override
+    public void userDelete(int userId) {
+        String sql = "DELETE FROM user WHERE user_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            pstmt.executeUpdate();
+            System.out.println("[회원 탈퇴 성공]");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

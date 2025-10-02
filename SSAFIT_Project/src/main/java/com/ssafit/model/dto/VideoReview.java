@@ -13,17 +13,16 @@ public class VideoReview {
 	private Date modDate;
 	private int viewCount;
 	
-	public VideoReview(int videoId, int reviewId, String writer, String title, String content) {
-		this.videoId = videoId;
-		this.reviewId = reviewId;
-		this.writer = writer;
-		this.title = title;
-		this.content = content;
-		this.viewCount = 0;
-		this.regDate = new Date();
-		this.modDate = new Date();
+	public VideoReview(int reviewId, int videoId, String writer, String title, String content, int viewCount) {
+	    this.reviewId = reviewId;
+	    this.videoId = videoId;
+	    this.writer = writer;
+	    this.title = title;
+	    this.content = content;
+	    this.viewCount = viewCount;
 	}
-	
+
+
 	@Override
 	public String toString() {
 		return "VideoReview [videoId=" + videoId + ", reviewId=" + reviewId + ", writer=" + writer + ", content="

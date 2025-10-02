@@ -60,8 +60,8 @@ public class VideoReviewController extends HttpServlet {
         String writer = request.getParameter("writer");
         String title = request.getParameter("title");
         String content = request.getParameter("content");
-
-        VideoReview review = new VideoReview(videoId, 0, writer, title, content);
+        
+        VideoReview review = new VideoReview(0, videoId, writer, title, content, 0);
         reviewService.reviewAdd(review);
 
         response.sendRedirect("review?act=list&videoId=" + videoId);
@@ -91,7 +91,7 @@ public class VideoReviewController extends HttpServlet {
         String title = request.getParameter("title");
         String content = request.getParameter("content");
 
-        VideoReview review = new VideoReview(videoId, reviewId, writer, title, content);
+        VideoReview review = new VideoReview(0, videoId, writer, title, content, 0);
         reviewService.reviewUpdate(review);
 
         response.sendRedirect("review?act=detail&reviewId=" + reviewId);
